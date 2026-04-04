@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ΛBSΛM Watches — Premium Timepiece Catalog</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── THEME ───────────────────────────────── */
+[data-theme="dark"]{
+  --bg:#090806;--bg2:#111008;--bg3:#1a1710;--surface:#141208;
+  --border:rgba(201,168,76,0.15);--border2:rgba(255,255,255,0.06);
+  --text:#f0ece0;--text2:#a09880;--text3:#5a5545;
+  --gold:#c9a84c;--gold-lt:#e8d49a;--gold-dk:#8a6520;
+  --shadow:rgba(0,0,0,0.6);--card-hover:#1f1c10;
+  --nav-bg:rgba(9,8,6,0.94);--tag-bg:rgba(201,168,76,0.1);
+  --sold-bg:rgba(180,60,60,0.12);--sold-col:#e07070;
+  --input-bg:#1a1710;--modal-bg:#111008;
+}
+[data-theme="light"]{
+  --bg:#faf8f2;--bg2:#f2ede0;--bg3:#e8e0cc;--surface:#ffffff;
+  --border:rgba(180,140,40,0.2);--border2:rgba(0,0,0,0.08);
+  --text:#1a1608;--text2:#6b5f3a;--text3:#a0916a;
+  --gold:#b8882a;--gold-lt:#d4a84a;--gold-dk:#7a5a18;
+  --shadow:rgba(0,0,0,0.12);--card-hover:#fffdf5;
+  --nav-bg:rgba(250,248,242,0.95);--tag-bg:rgba(184,136,42,0.1);
+  --sold-bg:rgba(200,60,60,0.08);--sold-col:#c04040;
+  --input-bg:#f2ede0;--modal-bg:#faf8f2;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;overflow-x:hidden;transition:background 0.4s,color 0.4s;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--gold-dk);}
+
+/* ── NAV ─────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:var(–nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(–border);transition:background 0.4s;}
+.nav-logo{text-decoration:none;}
+.nav-logo-main{font-family:‘DM Mono’,monospace;font-size:14px;font-weight:500;letter-spacing:0.2em;color:var(–text);}
+.nav-logo-main .lam{color:var(–gold);}
+.nav-logo-sub{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(–text3);margin-top:1px;}
+.nav-center{display:flex;gap:32px;list-style:none;}
+.nav-center a{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(–text2);text-decoration:none;transition:color 0.2s;}
+.nav-center a:hover{color:var(–gold);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.theme-toggle{width:40px;height:22px;background:var(–bg3);border:1px solid var(–border);border-radius:11px;cursor:pointer;position:relative;transition:background 0.3s;flex-shrink:0;}
+.theme-toggle::after{content:’’;position:absolute;width:16px;height:16px;background:var(–gold);border-radius:50%;top:2px;left:2px;transition:transform 0.3s;}
+[data-theme=“light”] .theme-toggle::after{transform:translateX(18px);}
+.nav-admin-btn{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(–text2);border:1px solid var(–border2);padding:8px 16px;cursor:pointer;background:transparent;transition:all 0.2s;}
+.nav-admin-btn:hover{border-color:var(–gold);color:var(–gold);}
+.nav-wa{display:inline-flex;align-items:center;gap:7px;font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(–bg);background:var(–gold);padding:9px 18px;text-decoration:none;transition:all 0.2s;}
+.nav-wa:hover{background:var(–gold-lt);}
+
+/* ── HERO ────────────────────────────────── */
+.hero{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(201,168,76,0.07) 0%,transparent 70%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(–border) 1px,transparent 1px),linear-gradient(90deg,var(–border) 1px,transparent 1px);background-size:64px 64px;opacity:0.4;pointer-events:none;}
+.hero-badge{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(–gold);border:1px solid var(–border);padding:9px 20px;display:inline-flex;align-items:center;gap:12px;margin-bottom:40px;opacity:0;animation:rise 0.8s ease 0.1s forwards;}
+.hero-badge::before,.hero-badge::after{content:’’;width:16px;height:1px;background:var(–gold);opacity:0.6;}
+.hero-title{font-size:clamp(52px,9vw,140px);font-weight:300;line-height:0.9;letter-spacing:-0.02em;margin-bottom:20px;opacity:0;animation:rise 0.9s ease 0.25s forwards;}
+.hero-title .lam{color:var(–gold);}
+.hero-title .it{font-style:italic;color:var(–text2);}
+.hero-tagline{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(–text3);margin-bottom:48px;opacity:0;animation:rise 0.8s ease 0.45s forwards;}
+.hero-desc{font-size:19px;font-weight:300;line-height:1.75;color:var(–text2);max-width:480px;margin:0 auto 52px;opacity:0;animation:rise 0.8s ease 0.6s forwards;}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;opacity:0;animation:rise 0.8s ease 0.75s forwards;}
+.btn-gold{display:inline-flex;align-items:center;gap:9px;font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(–bg);background:var(–gold);padding:15px 32px;text-decoration:none;transition:all 0.25s;}
+.btn-gold:hover{background:var(–gold-lt);transform:translateY(-2px);box-shadow:0 16px 48px rgba(201,168,76,0.2);}
+.btn-ghost{display:inline-flex;align-items:center;gap:9px;font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(–text);border:1px solid var(–border2);padding:15px 32px;text-decoration:none;transition:all 0.25s;}
+.btn-ghost:hover{border-color:var(–gold);color:var(–gold);transform:translateY(-2px);}
+
+/* ── MARQUEE ─────────────────────────────── */
+.mq{overflow:hidden;border-top:1px solid var(–border);border-bottom:1px solid var(–border);padding:15px 0;background:var(–bg2);}
+.mq-track{display:flex;width:max-content;animation:marquee 30s linear infinite;}
+.mq-item{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(–text3);padding:0 44px;white-space:nowrap;display:flex;align-items:center;gap:44px;}
+.mq-item::after{content:‘◆’;color:var(–gold);font-size:7px;}
+
+/* ── FILTER BAR ──────────────────────────── */
+.filter-bar{position:sticky;top:72px;z-index:100;background:var(–nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(–border);padding:14px 48px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;transition:background 0.4s;}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:320px;}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(–text3);pointer-events:none;}
+#searchInput{width:100%;padding:9px 12px 9px 36px;background:var(–bg3);border:1px solid var(–border2);color:var(–text);font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.08em;outline:none;transition:border-color 0.2s;}
+#searchInput::placeholder{color:var(–text3);}
+#searchInput:focus{border-color:var(–gold);}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.chip{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 14px;border:1px solid var(–border2);color:var(–text2);cursor:pointer;transition:all 0.2s;background:transparent;white-space:nowrap;}
+.chip:hover,.chip.active{border-color:var(–gold);color:var(–gold);background:var(–tag-bg);}
+.filter-count{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.1em;color:var(–text3);margin-left:auto;white-space:nowrap;}
+
+/* ── CATALOG ─────────────────────────────── */
+.catalog{padding:80px 48px;}
+.brand-section{margin-bottom:100px;}
+.brand-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(–border);}
+.brand-left{display:flex;align-items:center;gap:20px;}
+.brand-logo-pill{font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 18px;background:var(–tag-bg);border:1px solid var(–border);color:var(–gold);}
+.brand-name{font-size:clamp(32px,4vw,56px);font-weight:300;letter-spacing:-0.02em;line-height:1;}
+.brand-name em{font-style:italic;color:var(–text2);}
+.brand-count{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.15em;color:var(–text3);text-transform:uppercase;}
+
+/* ── WATCH GRID ──────────────────────────── */
+.watch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
+.watch-card{background:var(–surface);position:relative;overflow:hidden;transition:background 0.3s;}
+.watch-card:hover{background:var(–card-hover);}
+.watch-img-wrap{position:relative;aspect-ratio:1/1;background:var(–bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.watch-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease;}
+.watch-card:hover .watch-img-wrap img{transform:scale(1.04);}
+.watch-placeholder-icon{font-size:64px;opacity:0.15;}
+.sold-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-family:‘DM Mono’,monospace;font-size:12px;letter-spacing:0.2em;color:var(–sold-col);font-weight:500;}
+.watch-badge{position:absolute;top:14px;left:14px;font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:5px 10px;z-index:2;}
+.badge-new{background:var(–gold);color:var(–bg);}
+.badge-hot{background:#c04040;color:#fff;}
+.badge-sold{background:var(–sold-bg);color:var(–sold-col);border:1px solid var(–sold-col);}
+.watch-info{padding:24px;}
+.watch-brand-tag{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(–gold);margin-bottom:8px;}
+.watch-name{font-size:22px;font-weight:400;letter-spacing:-0.01em;margin-bottom:4px;line-height:1.2;}
+.watch-desc{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–text3);line-height:1.6;margin-bottom:12px;}
+.watch-price{font-size:28px;font-weight:300;letter-spacing:-0.02em;margin-bottom:16px;}
+.watch-price .currency{font-size:0.6em;vertical-align:super;color:var(–gold);font-family:‘DM Mono’,monospace;}
+.watch-tags-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+.watch-tag{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(–border2);color:var(–text3);}
+.watch-wa-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(–bg);background:var(–gold);padding:13px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer;}
+.watch-wa-btn:hover{background:var(–gold-lt);}
+.watch-wa-btn.sold-btn{background:var(–bg3);color:var(–text3);pointer-events:none;}
+
+/* Loading & empty states */
+.loading-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
+.skeleton{background:var(–surface);aspect-ratio:3/4;animation:shimmer 1.5s ease infinite;}
+@keyframes shimmer{0%,100%{opacity:0.5;}50%{opacity:1;}}
+.empty-section{text-align:center;padding:60px 24px;border:1px dashed var(–border);color:var(–text3);font-family:‘DM Mono’,monospace;font-size:12px;letter-spacing:0.1em;}
+.no-results{text-align:center;padding:80px 24px;display:none;}
+.no-results h3{font-size:32px;font-weight:300;color:var(–text2);margin-bottom:12px;}
+.no-results p{font-family:‘DM Mono’,monospace;font-size:11px;color:var(–text3);letter-spacing:0.1em;}
+
+/* ── SOCIALS STRIP ───────────────────────── */
+.socials-strip{padding:48px;border-top:1px solid var(–border);border-bottom:1px solid var(–border);background:var(–bg2);display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
+.soc-lbl{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(–text3);margin-right:8px;}
+.soc-btn{display:inline-flex;align-items:center;gap:9px;font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(–text);border:1px solid var(–border2);padding:12px 22px;text-decoration:none;transition:all 0.25s;}
+.soc-btn:hover{border-color:var(–gold);color:var(–gold);transform:translateY(-2px);}
+
+/* ── HOW IT WORKS ────────────────────────── */
+.how{padding:80px 48px;background:var(–bg2);}
+.how-inner{max-width:900px;margin:0 auto;text-align:center;}
+.sec-lbl{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(–gold);margin-bottom:16px;}
+.sec-title{font-size:clamp(36px,5vw,64px);font-weight:300;letter-spacing:-0.02em;margin-bottom:60px;line-height:1;}
+.sec-title em{font-style:italic;color:var(–text2);}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(–border2);margin-bottom:48px;}
+.step{background:var(–surface);padding:44px 32px;transition:background 0.3s;}
+.step:hover{background:var(–card-hover);}
+.step-n{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.2em;color:var(–gold);margin-bottom:20px;}
+.step-icon{font-size:28px;margin-bottom:16px;}
+.step h3{font-size:22px;font-weight:400;letter-spacing:-0.01em;margin-bottom:10px;}
+.step p{font-family:‘DM Mono’,monospace;font-size:11px;color:var(–text3);line-height:1.7;}
+
+/* ── CONTACT ─────────────────────────────── */
+.contact-strip{padding:80px 48px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;border-top:1px solid var(–border);}
+.cs-left .sec-title{margin-bottom:16px;}
+.cs-left p{font-size:18px;font-weight:300;line-height:1.8;color:var(–text2);margin-bottom:40px;max-width:400px;}
+.wa-big{display:inline-flex;align-items:center;gap:14px;font-family:‘DM Mono’,monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(–bg);background:var(–gold);padding:20px 40px;text-decoration:none;transition:all 0.3s;font-weight:500;}
+.wa-big:hover{background:var(–gold-lt);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,168,76,0.25);}
+.cs-right{display:flex;flex-direction:column;gap:1px;background:var(–border2);}
+.cs-item{background:var(–surface);padding:32px 40px;transition:background 0.3s;}
+.cs-item:hover{background:var(–card-hover);}
+.cs-lbl{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(–gold);margin-bottom:8px;}
+.cs-val{font-size:24px;font-weight:300;letter-spacing:-0.01em;}
+.cs-note{font-family:‘DM Mono’,monospace;font-size:11px;color:var(–text3);margin-top:4px;line-height:1.6;}
+
+/* ── FOOTER ──────────────────────────────── */
+footer{padding:32px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-top:1px solid var(–border);background:var(–bg2);}
+.ft-logo{font-family:‘DM Mono’,monospace;font-size:13px;letter-spacing:0.2em;color:var(–text);}
+.ft-logo .lam{color:var(–gold);}
+.ft-links{display:flex;gap:24px;flex-wrap:wrap;}
+.ft-links a{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(–text3);text-decoration:none;transition:color 0.2s;}
+.ft-links a:hover{color:var(–gold);}
+.ft-copy{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.1em;color:var(–text3);text-transform:uppercase;}
+
+/* ── ADMIN MODAL ─────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(–modal-bg);border:1px solid var(–border);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;}
+.modal-header{padding:28px 32px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:28px;font-weight:300;letter-spacing:-0.02em;}
+.modal-close{font-family:‘DM Mono’,monospace;font-size:18px;color:var(–text3);cursor:pointer;background:none;border:none;transition:color 0.2s;line-height:1;}
+.modal-close:hover{color:var(–text);}
+.modal-body{padding:32px;}
+.admin-login,.admin-panel{display:none;}
+.admin-login.active,.admin-panel.active{display:block;}
+
+/* Form styles */
+.form-group{margin-bottom:20px;}
+.form-label{font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(–gold);margin-bottom:8px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;padding:12px 14px;background:var(–input-bg);border:1px solid var(–border2);color:var(–text);font-family:‘DM Mono’,monospace;font-size:12px;outline:none;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(–gold);}
+.form-textarea{height:80px;resize:vertical;font-family:‘DM Mono’,monospace;}
+.form-select option{background:var(–bg3);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-hint{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–text3);margin-top:6px;line-height:1.5;}
+
+/* Image upload */
+.img-upload-area{border:2px dashed var(–border);padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
+.img-upload-area:hover{border-color:var(–gold);}
+.img-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-icon{font-size:32px;margin-bottom:12px;}
+.img-upload-text{font-family:‘DM Mono’,monospace;font-size:11px;color:var(–text3);letter-spacing:0.1em;}
+.img-preview{width:100%;height:160px;object-fit:cover;display:none;margin-top:12px;}
+.upload-progress{height:3px;background:var(–border2);margin-top:12px;display:none;}
+.upload-progress-bar{height:100%;background:var(–gold);width:0;transition:width 0.3s;}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(–border2);}
+.toggle-label{font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.1em;color:var(–text2);}
+.toggle{width:44px;height:24px;background:var(–bg3);border:1px solid var(–border2);border-radius:12px;cursor:pointer;position:relative;transition:background 0.3s;flex-shrink:0;}
+.toggle::after{content:’’;position:absolute;width:18px;height:18px;background:var(–text3);border-radius:50%;top:2px;left:2px;transition:all 0.3s;}
+.toggle.on{background:var(–tag-bg);border-color:var(–gold);}
+.toggle.on::after{background:var(–gold);transform:translateX(20px);}
+
+/* Btn */
+.submit-btn{width:100%;padding:16px;background:var(–gold);color:var(–bg);font-family:‘DM Mono’,monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.25s;margin-top:24px;font-weight:500;}
+.submit-btn:hover{background:var(–gold-lt);}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.msg{font-family:‘DM Mono’,monospace;font-size:11px;padding:12px 16px;margin-top:16px;display:none;letter-spacing:0.08em;line-height:1.6;}
+.msg.success{background:rgba(0,200,100,0.1);color:#4caf50;border:1px solid rgba(0,200,100,0.2);}
+.msg.error{background:rgba(200,60,60,0.1);color:#e07070;border:1px solid rgba(200,60,60,0.2);}
+
+/* Watch list in admin */
+.admin-watch-list{margin-top:24px;}
+.admin-watch-item{display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid var(–border2);transition:background 0.2s;}
+.admin-watch-item:hover{background:var(–bg3);}
+.admin-watch-img{width:52px;height:52px;object-fit:cover;background:var(–bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.admin-watch-img img{width:100%;height:100%;object-fit:cover;}
+.admin-watch-info{flex:1;min-width:0;}
+.admin-watch-name{font-size:16px;font-weight:400;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-watch-meta{font-family:‘DM Mono’,monospace;font-size:10px;color:var(–text3);letter-spacing:0.08em;}
+.admin-watch-actions{display:flex;gap:8px;flex-shrink:0;}
+.admin-btn{font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(–border2);color:var(–text2);background:transparent;cursor:pointer;transition:all 0.2s;}
+.admin-btn:hover{border-color:var(–gold);color:var(–gold);}
+.admin-btn.del:hover{border-color:var(–sold-col);color:var(–sold-col);}
+.admin-tabs{display:flex;gap:1px;background:var(–border2);margin-bottom:24px;}
+.admin-tab{flex:1;padding:12px;font-family:‘DM Mono’,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;text-align:center;cursor:pointer;background:var(–surface);color:var(–text3);border:none;transition:all 0.2s;}
+.admin-tab.active{background:var(–tag-bg);color:var(–gold);}
+
+/* ── ANIMATIONS ──────────────────────────── */
+@keyframes rise{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:900px){
+nav{padding:0 20px;}
+.nav-center{display:none;}
+.nav-admin-btn span{display:none;}
+.filter-bar{padding:12px 20px;}
+.catalog,.how,.contact-strip{padding:48px 20px;}
+.contact-strip{grid-template-columns:1fr;}
+.steps{grid-template-columns:1fr;}
+.socials-strip{padding:32px 20px;}
+footer{padding:24px 20px;}
+.form-row{grid-template-columns:1fr;}
+.modal{max-height:100vh;border-radius:0;}
+}
+@media(max-width:580px){
+.watch-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+
+</head>
+<body>
+
+<!-- NAV -->
+
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-main"><span class="lam">Λ</span>BS<span class="lam">Λ</span>M</div>
+    <div class="nav-logo-sub">Watches</div>
+  </a>
+  <ul class="nav-center">
+    <li><a href="#casio">Casio</a></li>
+    <li><a href="#rolex">Rolex</a></li>
+    <li><a href="#poedagar">Poedagar</a></li>
+    <li><a href="#smart">Smart</a></li>
+    <li><a href="#others">Others</a></li>
+    <li><a href="#how">How It Works</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle"></button>
+    <button class="nav-admin-btn" id="openAdmin">⚙ <span>Manage</span></button>
+    <a href="https://wa.me/2349073772959" target="_blank" class="nav-wa">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Order
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-badge">Premium Timepieces · Nigeria</div>
+  <h1 class="hero-title"><span class="lam">Λ</span>BS<span class="lam">Λ</span>M<br><span class="it">Watches</span></h1>
+  <p class="hero-tagline">Curated · Authentic · Delivered</p>
+  <p class="hero-desc">Your one-stop destination for premium and fashion timepieces. Every budget. Every style. Order direct on WhatsApp.</p>
+  <div class="hero-btns">
+    <a href="#catalog" class="btn-gold">Browse Catalog <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    <a href="https://wa.me/2349073772959" target="_blank" class="btn-ghost">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+
+<div class="mq">
+  <div class="mq-track">
+    <div class="mq-item">Casio</div><div class="mq-item">Rolex</div><div class="mq-item">Poedagar</div><div class="mq-item">Smartwatches</div><div class="mq-item">Fashion Pieces</div><div class="mq-item">Fast Delivery</div><div class="mq-item">Verified Quality</div><div class="mq-item">WhatsApp Orders</div><div class="mq-item">₦15k — ₦100k+</div><div class="mq-item">Nigeria Wide</div>
+    <div class="mq-item">Casio</div><div class="mq-item">Rolex</div><div class="mq-item">Poedagar</div><div class="mq-item">Smartwatches</div><div class="mq-item">Fashion Pieces</div><div class="mq-item">Fast Delivery</div><div class="mq-item">Verified Quality</div><div class="mq-item">WhatsApp Orders</div><div class="mq-item">₦15k — ₦100k+</div><div class="mq-item">Nigeria Wide</div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+
+<div class="filter-bar" id="catalog">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search watches...">
+  </div>
+  <div class="filter-chips">
+    <button class="chip active" data-filter="all">All</button>
+    <button class="chip" data-filter="casio">Casio</button>
+    <button class="chip" data-filter="rolex">Rolex</button>
+    <button class="chip" data-filter="poedagar">Poedagar</button>
+    <button class="chip" data-filter="smart">Smart</button>
+    <button class="chip" data-filter="others">Others</button>
+    <button class="chip" data-filter="available">Available</button>
+    <button class="chip" data-filter="under50">Under ₦50k</button>
+  </div>
+  <span class="filter-count" id="filterCount"></span>
+</div>
+
+<!-- CATALOG -->
+
+<div class="catalog">
+  <!-- CASIO -->
+  <div class="brand-section" id="casio">
+    <div class="brand-header reveal">
+      <div class="brand-left">
+        <span class="brand-logo-pill">Casio</span>
+        <h2 class="brand-name">Casio <em>Collection</em></h2>
+      </div>
+      <span class="brand-count" id="casio-count"></span>
+    </div>
+    <div class="watch-grid" id="casio-grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </div>
+  <!-- ROLEX -->
+  <div class="brand-section" id="rolex">
+    <div class="brand-header reveal">
+      <div class="brand-left">
+        <span class="brand-logo-pill">Rolex</span>
+        <h2 class="brand-name">Rolex <em>Collection</em></h2>
+      </div>
+      <span class="brand-count" id="rolex-count"></span>
+    </div>
+    <div class="watch-grid" id="rolex-grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </div>
+  <!-- POEDAGAR -->
+  <div class="brand-section" id="poedagar">
+    <div class="brand-header reveal">
+      <div class="brand-left">
+        <span class="brand-logo-pill">Poedagar</span>
+        <h2 class="brand-name">Poedagar <em>Collection</em></h2>
+      </div>
+      <span class="brand-count" id="poedagar-count"></span>
+    </div>
+    <div class="watch-grid" id="poedagar-grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </div>
+  <!-- SMARTWATCHES -->
+  <div class="brand-section" id="smart">
+    <div class="brand-header reveal">
+      <div class="brand-left">
+        <span class="brand-logo-pill">Smart</span>
+        <h2 class="brand-name">Smart<em>watches</em></h2>
+      </div>
+      <span class="brand-count" id="smart-count"></span>
+    </div>
+    <div class="watch-grid" id="smart-grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </div>
+  <!-- OTHERS -->
+  <div class="brand-section" id="others">
+    <div class="brand-header reveal">
+      <div class="brand-left">
+        <span class="brand-logo-pill">Mixed</span>
+        <h2 class="brand-name">Other <em>Brands</em></h2>
+      </div>
+      <span class="brand-count" id="others-count"></span>
+    </div>
+    <div class="watch-grid" id="others-grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </div>
+  <div class="no-results" id="noResults">
+    <h3>No watches found</h3>
+    <p>Try a different search or filter</p>
+  </div>
+</div>
+
+<!-- SOCIALS -->
+
+<div class="socials-strip reveal">
+  <span class="soc-lbl">Follow Us</span>
+  <a href="https://x.com/absam06?s=21" target="_blank" class="soc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    X / Twitter
+  </a>
+  <a href="https://www.instagram.com/absam06" target="_blank" class="soc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    Instagram
+  </a>
+  <a href="https://www.facebook.com/share/17E8jRWYX7/" target="_blank" class="soc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    Facebook
+  </a>
+  <a href="https://wa.me/2349073772959" target="_blank" class="soc-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    WhatsApp
+  </a>
+</div>
+
+<!-- HOW IT WORKS -->
+
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="sec-lbl reveal">How It Works</div>
+    <h2 class="sec-title reveal">Order in <em>3 steps</em></h2>
+    <div class="steps">
+      <div class="step reveal"><div class="step-n">01</div><div class="step-icon">👀</div><h3>Browse</h3><p>Explore the catalog. Find the watch that speaks to you.</p></div>
+      <div class="step reveal"><div class="step-n">02</div><div class="step-icon">💬</div><h3>WhatsApp</h3><p>Tap "Enquire on WhatsApp" — we confirm availability and arrange payment.</p></div>
+      <div class="step reveal"><div class="step-n">03</div><div class="step-icon">📦</div><h3>Receive</h3><p>We deliver straight to you across Nigeria. Fast and secure.</p></div>
+    </div>
+    <a href="https://wa.me/2349073772959" target="_blank" class="btn-gold reveal">Chat With Us Now <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+  </div>
+</section>
+
+<!-- CONTACT -->
+
+<section class="contact-strip">
+  <div class="cs-left reveal">
+    <div class="sec-lbl">Get In Touch</div>
+    <h2 class="sec-title">Got a question?<br/><em>Just ask.</em></h2>
+    <p>Whether you want a specific model, need gift advice, or want to know what's coming next — just message us. We respond fast.</p>
+    <a href="https://wa.me/2349073772959" target="_blank" class="wa-big">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      +234 907 377 2959
+    </a>
+  </div>
+  <div class="cs-right reveal">
+    <div class="cs-item"><div class="cs-lbl">WhatsApp</div><div class="cs-val">+234 907 377 2959</div><div class="cs-note">Message us anytime — we're always online.</div></div>
+    <div class="cs-item"><div class="cs-lbl">Price Range</div><div class="cs-val">₦15,000 — ₦100,000+</div><div class="cs-note">Something for every budget.</div></div>
+    <div class="cs-item"><div class="cs-lbl">Delivery</div><div class="cs-val">Nigeria Wide</div><div class="cs-note">Lagos · Abuja · PH · everywhere.</div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+
+<footer>
+  <div class="ft-logo"><span class="lam">Λ</span>BS<span class="lam">Λ</span>M Watches</div>
+  <div class="ft-links">
+    <a href="#casio">Casio</a>
+    <a href="#rolex">Rolex</a>
+    <a href="#poedagar">Poedagar</a>
+    <a href="#smart">Smart</a>
+    <a href="#others">Others</a>
+    <a href="https://x.com/absam06?s=21" target="_blank">X</a>
+    <a href="https://www.instagram.com/absam06" target="_blank">Instagram</a>
+    <a href="https://wa.me/2349073772959" target="_blank">Order Now</a>
+  </div>
+  <div class="ft-copy">© 2025 · All rights reserved</div>
+</footer>
+
+<!-- ── ADMIN MODAL ─────────────────────────── -->
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Store Manager</div>
+      <button class="modal-close" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+
+```
+  <!-- LOGIN -->
+  <div class="admin-login active" id="adminLogin">
+    <div class="form-group">
+      <label class="form-label">Admin Password</label>
+      <input type="password" class="form-input" id="adminPassword" placeholder="Enter password">
+    </div>
+    <button class="submit-btn" id="loginBtn">Enter Dashboard</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <!-- PANEL -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="add">Add Watch</button>
+      <button class="admin-tab" data-tab="manage">Manage ({{count}})</button>
+    </div>
+
+    <!-- ADD TAB -->
+    <div id="tab-add">
+      <div class="form-group">
+        <label class="form-label">Watch Photo</label>
+        <div class="img-upload-area" id="uploadArea">
+          <input type="file" id="imgFile" accept="image/*">
+          <div class="img-upload-icon">📷</div>
+          <div class="img-upload-text">Tap to upload photo</div>
+          <div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar" id="uploadBar"></div></div>
+        </div>
+        <img id="imgPreview" class="img-preview" alt="Preview">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Watch Name</label>
+          <input type="text" class="form-input" id="watchName" placeholder="e.g. G-Shock Classic">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="watchBrand">
+            <option value="casio">Casio</option>
+            <option value="rolex">Rolex</option>
+            <option value="poedagar">Poedagar</option>
+            <option value="smart">Smartwatch</option>
+            <option value="others">Others</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (₦)</label>
+          <input type="number" class="form-input" id="watchPrice" placeholder="25000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge</label>
+          <select class="form-select" id="watchBadge">
+            <option value="">None</option>
+            <option value="new">New</option>
+            <option value="hot">Hot</option>
+            <option value="sold">Sold Out</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="watchDesc" placeholder="Brief description of the watch..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma separated)</label>
+        <input type="text" class="form-input" id="watchTags" placeholder="Analog, Gold Tone, Water Resistant">
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Available for purchase</span>
+        <div class="toggle on" id="availToggle"></div>
+      </div>
+      <button class="submit-btn" id="addWatchBtn">Add Watch to Store</button>
+      <div class="msg" id="addMsg"></div>
+    </div>
+
+    <!-- MANAGE TAB -->
+    <div id="tab-manage" style="display:none;">
+      <div class="admin-watch-list" id="adminWatchList">
+        <div style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">Loading watches...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────
+const SUPABASE_URL = 'https://ubeuhfblaogcodcxtwiw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZXVoZmJsYW9nY29kY3h0d2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyODU1NTMsImV4cCI6MjA5MDg2MTU1M30.IVPXzDC7ncvY7yeexVBw2cR0g3IusCewQ1R8J4vxKs0';
+const CLOUDINARY_CLOUD = 'db8qctmid';
+const CLOUDINARY_PRESET = 'absam_watches';
+const ADMIN_PASSWORD = 'absam2025';
+const WA_NUMBER = '2349073772959';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── THEME ─────────────────────────────────────
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const h = document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+// ── WATCHES STATE ─────────────────────────────
+let allWatches = [];
+let activeFilter = 'all';
+let searchQuery = '';
+let uploadedImageUrl = '';
+let isAvailable = true;
+
+// ── LOAD WATCHES ──────────────────────────────
+async function loadWatches() {
+  const { data, error } = await sb.from('watches').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  allWatches = data || [];
+  renderCatalog();
+}
+
+function renderCatalog() {
+  const brands = ['casio', 'rolex', 'poedagar', 'smart', 'others'];
+  let totalVisible = 0;
+
+  brands.forEach(brand => {
+    const grid = document.getElementById(brand + '-grid');
+    const countEl = document.getElementById(brand + '-count');
+    const section = document.getElementById(brand);
+    if (!grid) return;
+
+    let watches = allWatches.filter(w => w.brand === brand);
+
+    // Apply search
+    if (searchQuery) {
+      watches = watches.filter(w =>
+        w.name.toLowerCase().includes(searchQuery) ||
+        (w.description || '').toLowerCase().includes(searchQuery) ||
+        (w.tags || '').toLowerCase().includes(searchQuery)
+      );
+    }
+    // Apply filter
+    if (activeFilter === 'available') watches = watches.filter(w => w.available);
+    if (activeFilter === 'under50') watches = watches.filter(w => w.price < 50000);
+    if (activeFilter !== 'all' && activeFilter !== 'available' && activeFilter !== 'under50' && activeFilter !== brand) {
+      watches = [];
+    }
+
+    totalVisible += watches.length;
+
+    if (watches.length === 0) {
+      section.style.display = (activeFilter === 'all' && !searchQuery) ? '' : 'none';
+      grid.innerHTML = activeFilter === 'all' && !searchQuery
+        ? '<div class="empty-section">No watches in this section yet.<br/>Add some from the admin panel.</div>'
+        : '';
+      if (countEl) countEl.textContent = '';
+      return;
+    }
+
+    section.style.display = '';
+    if (countEl) countEl.textContent = watches.length + ' piece' + (watches.length !== 1 ? 's' : '');
+    grid.innerHTML = watches.map(w => renderWatchCard(w)).join('');
+  });
+
+  const countEl = document.getElementById('filterCount');
+  if (countEl) countEl.textContent = totalVisible === allWatches.length ? 'Showing all watches' : `Showing ${totalVisible} of ${allWatches.length}`;
+
+  document.getElementById('noResults').style.display = totalVisible === 0 ? 'block' : 'none';
+
+  // Re-observe reveals
+  document.querySelectorAll('.watch-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, 50);
+  });
+}
+
+function renderWatchCard(w) {
+  const price = Number(w.price).toLocaleString();
+  const tags = (w.tags || '').split(',').filter(Boolean).map(t =>
+    `<span class="watch-tag">${t.trim()}</span>`
+  ).join('');
+  const badgeHtml = w.badge && w.badge !== 'sold'
+    ? `<span class="watch-badge badge-${w.badge}">${w.badge === 'new' ? 'New' : 'Hot'}</span>`
+    : w.badge === 'sold' ? `<span class="watch-badge badge-sold">Sold Out</span>` : '';
+  const soldOverlay = !w.available ? '<div class="sold-overlay">SOLD OUT</div>' : '';
+  const imgHtml = w.image_url
+    ? `<img src="${w.image_url}" alt="${w.name}" loading="lazy">`
+    : `<div class="watch-placeholder-icon">⌚</div>`;
+  const waText = encodeURIComponent(`Hi ΛBSΛM! I'm interested in the ${w.name} (₦${price}). Is it available?`);
+  const btnHtml = w.available
+    ? `<a href="https://wa.me/${WA_NUMBER}?text=${waText}" target="_blank" class="watch-wa-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enquire on WhatsApp</a>`
+    : `<button class="watch-wa-btn sold-btn">Sold Out</button>`;
+
+  return `
+    <div class="watch-card" data-brand="${w.brand}" data-price="${w.price}" data-available="${w.available}" data-id="${w.id}">
+      <div class="watch-img-wrap">
+        ${imgHtml}
+        ${soldOverlay}
+        ${badgeHtml}
+      </div>
+      <div class="watch-info">
+        <div class="watch-brand-tag">${w.brand.charAt(0).toUpperCase() + w.brand.slice(1)}</div>
+        <div class="watch-name">${w.name}</div>
+        ${w.description ? `<div class="watch-desc">${w.description}</div>` : ''}
+        <div class="watch-price"><span class="currency">₦</span>${price}</div>
+        ${tags ? `<div class="watch-tags-row">${tags}</div>` : ''}
+        ${btnHtml}
+      </div>
+    </div>`;
+}
+
+// ── SEARCH & FILTER ───────────────────────────
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.toLowerCase().trim();
+  renderCatalog();
+});
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeFilter = chip.dataset.filter;
+    renderCatalog();
+  });
+});
+
+// ── ADMIN MODAL ───────────────────────────────
+const modal = document.getElementById('adminModal');
+document.getElementById('openAdmin').addEventListener('click', () => modal.classList.add('open'));
+document.getElementById('closeModal').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+// Login
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const pw = document.getElementById('adminPassword').value;
+  const msg = document.getElementById('loginMsg');
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('adminLogin').classList.remove('active');
+    document.getElementById('adminPanel').classList.add('active');
+  } else {
+    msg.textContent = 'Incorrect password. Try again.';
+    msg.className = 'msg error';
+    msg.style.display = 'block';
+  }
+});
+document.getElementById('adminPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+// Admin tabs
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const which = tab.dataset.tab;
+    document.getElementById('tab-add').style.display = which === 'add' ? '' : 'none';
+    document.getElementById('tab-manage').style.display = which === 'manage' ? '' : 'none';
+    if (which === 'manage') renderAdminList();
+  });
+});
+
+// Available toggle
+const availToggle = document.getElementById('availToggle');
+availToggle.addEventListener('click', () => {
+  isAvailable = !isAvailable;
+  availToggle.classList.toggle('on', isAvailable);
+});
+
+// Image upload to Cloudinary
+document.getElementById('imgFile').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('imgPreview');
+  const progress = document.getElementById('uploadProgress');
+  const bar = document.getElementById('uploadBar');
+  progress.style.display = 'block';
+  bar.style.width = '30%';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  formData.append('folder', 'absam-watches');
+
+  try {
+    bar.style.width = '60%';
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+      method: 'POST', body: formData
+    });
+    const data = await res.json();
+    bar.style.width = '100%';
+    if (data.secure_url) {
+      uploadedImageUrl = data.secure_url;
+      preview.src = uploadedImageUrl;
+      preview.style.display = 'block';
+      setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0'; }, 800);
+    } else {
+      showMsg('addMsg', 'Image upload failed. Check Cloudinary preset.', 'error');
+      progress.style.display = 'none';
+    }
+  } catch (err) {
+    showMsg('addMsg', 'Upload error: ' + err.message, 'error');
+    progress.style.display = 'none';
+  }
+});
+
+// Add watch
+document.getElementById('addWatchBtn').addEventListener('click', async () => {
+  const name = document.getElementById('watchName').value.trim();
+  const brand = document.getElementById('watchBrand').value;
+  const price = parseInt(document.getElementById('watchPrice').value);
+  const badge = document.getElementById('watchBadge').value;
+  const desc = document.getElementById('watchDesc').value.trim();
+  const tags = document.getElementById('watchTags').value.trim();
+  const btn = document.getElementById('addWatchBtn');
+
+  if (!name || !price) { showMsg('addMsg', 'Please fill in name and price.', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const { error } = await sb.from('watches').insert([{
+    name, brand, price,
+    description: desc,
+    image_url: uploadedImageUrl || '',
+    available: isAvailable,
+    badge: badge || null,
+    tags: tags || ''
+  }]);
+
+  btn.disabled = false;
+  btn.textContent = 'Add Watch to Store';
+
+  if (error) {
+    showMsg('addMsg', 'Error: ' + error.message, 'error');
+  } else {
+    showMsg('addMsg', `✓ "${name}" added successfully!`, 'success');
+    // Reset form
+    document.getElementById('watchName').value = '';
+    document.getElementById('watchPrice').value = '';
+    document.getElementById('watchDesc').value = '';
+    document.getElementById('watchTags').value = '';
+    document.getElementById('watchBadge').value = '';
+    document.getElementById('imgPreview').style.display = 'none';
+    uploadedImageUrl = '';
+    isAvailable = true;
+    availToggle.classList.add('on');
+    await loadWatches();
+  }
+});
+
+// Render admin manage list
+async function renderAdminList() {
+  const list = document.getElementById('adminWatchList');
+  list.innerHTML = '<div style="text-align:center;padding:32px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text3);">Loading...</div>';
+  const { data } = await sb.from('watches').select('*').order('created_at', { ascending: false });
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:32px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text3);">No watches yet. Add some!</div>';
+    return;
+  }
+  list.innerHTML = data.map(w => `
+    <div class="admin-watch-item" id="admin-item-${w.id}">
+      <div class="admin-watch-img">
+        ${w.image_url ? `<img src="${w.image_url}" alt="${w.name}">` : '⌚'}
+      </div>
+      <div class="admin-watch-info">
+        <div class="admin-watch-name">${w.name}</div>
+        <div class="admin-watch-meta">${w.brand} · ₦${Number(w.price).toLocaleString()} · ${w.available ? '✓ Available' : '✗ Sold Out'}</div>
+      </div>
+      <div class="admin-watch-actions">
+        <button class="admin-btn" onclick="toggleAvail('${w.id}', ${w.available})">${w.available ? 'Mark Sold' : 'Mark Available'}</button>
+        <button class="admin-btn del" onclick="deleteWatch('${w.id}', '${w.name}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleAvail(id, current) {
+  await sb.from('watches').update({ available: !current }).eq('id', id);
+  await loadWatches();
+  renderAdminList();
+}
+
+async function deleteWatch(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  await sb.from('watches').delete().eq('id', id);
+  await loadWatches();
+  renderAdminList();
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// ── SCROLL REVEAL ─────────────────────────────
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ── INIT ──────────────────────────────────────
+loadWatches();
+</script>
+
+</body>
+</html>
