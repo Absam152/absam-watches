@@ -124,6 +124,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:72px;display:flex;ali
 .watch-wa-btn:hover{background:var(–gold-lt);}
 .watch-wa-btn.sold-btn{background:var(–bg3);color:var(–text3);pointer-events:none;}
 
+.mini-gallery{position:relative;width:100%;height:100%;}
+.gal-main{width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;}
+.gal-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
+.gal-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);cursor:pointer;transition:background 0.2s;}
+.gal-dot.active{background:var(–gold);}
+
 /* Loading & empty states */
 .loading-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
 .skeleton{background:var(–surface);aspect-ratio:3/4;animation:shimmer 1.5s ease infinite;}
@@ -518,14 +524,37 @@ footer{padding:24px 20px;}
     <!-- ADD TAB -->
     <div id="tab-add">
       <div class="form-group">
-        <label class="form-label">Watch Photo</label>
-        <div class="img-upload-area" id="uploadArea">
-          <input type="file" id="imgFile" accept="image/*">
-          <div class="img-upload-icon">📷</div>
-          <div class="img-upload-text">Tap to upload photo</div>
-          <div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar" id="uploadBar"></div></div>
+        <label class="form-label">Watch Photos (up to 4)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="img-upload-area" id="uploadArea0" style="padding:20px;">
+            <input type="file" id="imgFile0" accept="image/*">
+            <div class="img-upload-icon" style="font-size:22px;">📷</div>
+            <div class="img-upload-text" style="font-size:9px;">Main Photo</div>
+            <div class="upload-progress" id="uploadProgress0"><div class="upload-progress-bar" id="uploadBar0"></div></div>
+            <img id="imgPreview0" class="img-preview" alt="Preview" style="height:80px;">
+          </div>
+          <div class="img-upload-area" id="uploadArea1" style="padding:20px;">
+            <input type="file" id="imgFile1" accept="image/*">
+            <div class="img-upload-icon" style="font-size:22px;">📷</div>
+            <div class="img-upload-text" style="font-size:9px;">Photo 2</div>
+            <div class="upload-progress" id="uploadProgress1"><div class="upload-progress-bar" id="uploadBar1"></div></div>
+            <img id="imgPreview1" class="img-preview" alt="Preview" style="height:80px;">
+          </div>
+          <div class="img-upload-area" id="uploadArea2" style="padding:20px;">
+            <input type="file" id="imgFile2" accept="image/*">
+            <div class="img-upload-icon" style="font-size:22px;">📷</div>
+            <div class="img-upload-text" style="font-size:9px;">Photo 3</div>
+            <div class="upload-progress" id="uploadProgress2"><div class="upload-progress-bar" id="uploadBar2"></div></div>
+            <img id="imgPreview2" class="img-preview" alt="Preview" style="height:80px;">
+          </div>
+          <div class="img-upload-area" id="uploadArea3" style="padding:20px;">
+            <input type="file" id="imgFile3" accept="image/*">
+            <div class="img-upload-icon" style="font-size:22px;">📷</div>
+            <div class="img-upload-text" style="font-size:9px;">Photo 4</div>
+            <div class="upload-progress" id="uploadProgress3"><div class="upload-progress-bar" id="uploadBar3"></div></div>
+            <img id="imgPreview3" class="img-preview" alt="Preview" style="height:80px;">
+          </div>
         </div>
-        <img id="imgPreview" class="img-preview" alt="Preview">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -609,7 +638,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 let allWatches = [];
 let activeFilter = 'all';
 let searchQuery = '';
-let uploadedImageUrl = '';
+let uploadedImages = ['','','',''];
 let isAvailable = true;
 
 // ── LOAD WATCHES ──────────────────────────────
@@ -686,9 +715,21 @@ function renderWatchCard(w) {
     ? `<span class="watch-badge badge-${w.badge}">${w.badge === 'new' ? 'New' : 'Hot'}</span>`
     : w.badge === 'sold' ? `<span class="watch-badge badge-sold">Sold Out</span>` : '';
   const soldOverlay = !w.available ? '<div class="sold-overlay">SOLD OUT</div>' : '';
-  const imgHtml = w.image_url
-    ? `<img src="${w.image_url}" alt="${w.name}" loading="lazy">`
-    : `<div class="watch-placeholder-icon">⌚</div>`;
+  const imgs = (w.image_url || '').split(',').filter(Boolean);
+  let imgHtml = '';
+  if (imgs.length === 0) {
+    imgHtml = `<div class="watch-placeholder-icon">⌚</div>`;
+  } else if (imgs.length === 1) {
+    imgHtml = `<img src="${imgs[0]}" alt="${w.name}" loading="lazy">`;
+  } else {
+    imgHtml = `
+      <div class="mini-gallery" id="gal-${w.id}">
+        <img src="${imgs[0]}" alt="${w.name}" loading="lazy" class="gal-main">
+        <div class="gal-dots">
+          ${imgs.map((_, i) => `<span class="gal-dot ${i===0?'active':''}" onclick="switchImg('${w.id}',${i},[${imgs.map(u=>`'${u}'`).join(',')}])"></span>`).join('')}
+        </div>
+      </div>`;
+  }
   const waText = encodeURIComponent(`Hi ΛBSΛM! I'm interested in the ${w.name} (₦${price}). Is it available?`);
   const btnHtml = w.available
     ? `<a href="https://wa.me/${WA_NUMBER}?text=${waText}" target="_blank" class="watch-wa-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enquire on WhatsApp</a>`
@@ -710,6 +751,13 @@ function renderWatchCard(w) {
         ${btnHtml}
       </div>
     </div>`;
+}
+
+function switchImg(id, index, imgs) {
+  const gal = document.getElementById('gal-'+id);
+  if (!gal) return;
+  gal.querySelector('.gal-main').src = imgs[index];
+  gal.querySelectorAll('.gal-dot').forEach((d,i) => d.classList.toggle('active', i===index));
 }
 
 // ── SEARCH & FILTER ───────────────────────────
@@ -769,41 +817,44 @@ availToggle.addEventListener('click', () => {
   availToggle.classList.toggle('on', isAvailable);
 });
 
-// Image upload to Cloudinary
-document.getElementById('imgFile').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const preview = document.getElementById('imgPreview');
-  const progress = document.getElementById('uploadProgress');
-  const bar = document.getElementById('uploadBar');
-  progress.style.display = 'block';
-  bar.style.width = '30%';
+// ── MULTI IMAGE UPLOAD ────────────────────────
+let uploadedImages = ['','','',''];
 
+async function uploadImage(file, slot) {
+  const progress = document.getElementById('uploadProgress'+slot);
+  const bar = document.getElementById('uploadBar'+slot);
+  const preview = document.getElementById('imgPreview'+slot);
+  progress.style.display = 'block';
+  bar.style.width = '40%';
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_PRESET);
   formData.append('folder', 'absam-watches');
-
   try {
-    bar.style.width = '60%';
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-      method: 'POST', body: formData
-    });
+    bar.style.width = '70%';
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:formData });
     const data = await res.json();
     bar.style.width = '100%';
     if (data.secure_url) {
-      uploadedImageUrl = data.secure_url;
-      preview.src = uploadedImageUrl;
+      uploadedImages[slot] = data.secure_url;
+      preview.src = data.secure_url;
       preview.style.display = 'block';
       setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0'; }, 800);
     } else {
-      showMsg('addMsg', 'Image upload failed. Check Cloudinary preset.', 'error');
+      showMsg('addMsg','Image upload failed. Check Cloudinary preset.','error');
       progress.style.display = 'none';
     }
-  } catch (err) {
-    showMsg('addMsg', 'Upload error: ' + err.message, 'error');
+  } catch(err) {
+    showMsg('addMsg','Upload error: '+err.message,'error');
     progress.style.display = 'none';
   }
+}
+
+[0,1,2,3].forEach(i => {
+  document.getElementById('imgFile'+i).addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) uploadImage(file, i);
+  });
 });
 
 // Add watch
@@ -824,7 +875,7 @@ document.getElementById('addWatchBtn').addEventListener('click', async () => {
   const { error } = await sb.from('watches').insert([{
     name, brand, price,
     description: desc,
-    image_url: uploadedImageUrl || '',
+    image_url: uploadedImages.filter(Boolean).join(','),
     available: isAvailable,
     badge: badge || null,
     tags: tags || ''
@@ -837,14 +888,16 @@ document.getElementById('addWatchBtn').addEventListener('click', async () => {
     showMsg('addMsg', 'Error: ' + error.message, 'error');
   } else {
     showMsg('addMsg', `✓ "${name}" added successfully!`, 'success');
-    // Reset form
     document.getElementById('watchName').value = '';
     document.getElementById('watchPrice').value = '';
     document.getElementById('watchDesc').value = '';
     document.getElementById('watchTags').value = '';
     document.getElementById('watchBadge').value = '';
-    document.getElementById('imgPreview').style.display = 'none';
-    uploadedImageUrl = '';
+    [0,1,2,3].forEach(i => {
+      const p = document.getElementById('imgPreview'+i);
+      if (p) { p.style.display='none'; p.src=''; }
+    });
+    uploadedImages = ['','','',''];
     isAvailable = true;
     availToggle.classList.add('on');
     await loadWatches();
