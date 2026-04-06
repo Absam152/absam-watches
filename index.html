@@ -124,11 +124,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:72px;display:flex;ali
 .watch-wa-btn:hover{background:var(–gold-lt);}
 .watch-wa-btn.sold-btn{background:var(–bg3);color:var(–text3);pointer-events:none;}
 
-.mini-gallery{position:relative;width:100%;height:100%;}
+.mini-gallery{position:relative;width:100%;height:100%;overflow:hidden;}
 .gal-main{width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;}
-.gal-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
-.gal-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);cursor:pointer;transition:background 0.2s;}
-.gal-dot.active{background:var(–gold);}
+.gal-counter{position:absolute;bottom:10px;right:10px;font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.1em;background:rgba(0,0,0,0.5);color:#fff;padding:3px 8px;border-radius:10px;}
+.gal-prev,.gal-next{position:absolute;top:0;bottom:0;width:40%;cursor:pointer;z-index:2;}
+.gal-prev{left:0;}
+.gal-next{right:0;}
 
 /* Loading & empty states */
 .loading-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
@@ -723,11 +724,11 @@ function renderWatchCard(w) {
     imgHtml = `<img src="${imgs[0]}" alt="${w.name}" loading="lazy">`;
   } else {
     imgHtml = `
-      <div class="mini-gallery" id="gal-${w.id}">
-        <img src="${imgs[0]}" alt="${w.name}" loading="lazy" class="gal-main">
-        <div class="gal-dots">
-          ${imgs.map((_, i) => `<span class="gal-dot ${i===0?'active':''}" onclick="switchImg('${w.id}',${i},[${imgs.map(u=>`'${u}'`).join(',')}])"></span>`).join('')}
-        </div>
+      <div class="mini-gallery" id="gal-${w.id}" data-imgs="${imgs.join('|')}" data-idx="0">
+        <img src="${imgs[0]}" alt="${w.name}" loading="lazy" class="gal-main" id="gal-img-${w.id}">
+        <div class="gal-prev" onclick="galNav('${w.id}',-1)"></div>
+        <div class="gal-next" onclick="galNav('${w.id}',1)"></div>
+        <div class="gal-counter" id="gal-count-${w.id}">1 / ${imgs.length}</div>
       </div>`;
   }
   const waText = encodeURIComponent(`Hi ΛBSΛM! I'm interested in the ${w.name} (₦${price}). Is it available?`);
@@ -753,11 +754,18 @@ function renderWatchCard(w) {
     </div>`;
 }
 
-function switchImg(id, index, imgs) {
+function galNav(id, dir) {
   const gal = document.getElementById('gal-'+id);
   if (!gal) return;
-  gal.querySelector('.gal-main').src = imgs[index];
-  gal.querySelectorAll('.gal-dot').forEach((d,i) => d.classList.toggle('active', i===index));
+  const imgs = gal.dataset.imgs.split('|');
+  let idx = parseInt(gal.dataset.idx) + dir;
+  if (idx < 0) idx = imgs.length - 1;
+  if (idx >= imgs.length) idx = 0;
+  gal.dataset.idx = idx;
+  const img = document.getElementById('gal-img-'+id);
+  img.style.opacity = '0';
+  setTimeout(() => { img.src = imgs[idx]; img.style.opacity = '1'; }, 150);
+  document.getElementById('gal-count-'+id).textContent = (idx+1) + ' / ' + imgs.length;
 }
 
 // ── SEARCH & FILTER ───────────────────────────
