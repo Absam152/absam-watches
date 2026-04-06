@@ -131,8 +131,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:72px;display:flex;ali
 .gal-prev{left:0;}
 .gal-next{right:0;}
 
-/* Loading & empty states */
-.loading-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
+/* ── LIGHTBOX ────────────────────────────────── */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;}
+.lightbox.open{display:flex;}
+.lb-img{max-width:100vw;max-height:85vh;object-fit:contain;transition:opacity 0.25s;}
+.lb-close{position:absolute;top:16px;right:20px;font-size:28px;color:#fff;cursor:pointer;z-index:1000;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border-radius:50%;}
+.lb-close:hover{background:rgba(255,255,255,0.2);}
+.lb-counter{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-family:‘DM Mono’,monospace;font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.6);}
+.lb-prev,.lb-next{position:absolute;top:50%;transform:translateY(-50%);font-size:28px;color:#fff;cursor:pointer;background:rgba(255,255,255,0.1);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.lb-prev{left:16px;}
+.lb-next{right:16px;}
+.lb-prev:hover,.lb-next:hover{background:rgba(255,255,255,0.2);}
+.lb-dots{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:6px;}
+.lb-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:background 0.2s;}
+.lb-dot.active{background:var(–gold);}
+
+/* ── LOADING & EMPTY ─────────────────────────── */{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(–border2);}
 .skeleton{background:var(–surface);aspect-ratio:3/4;animation:shimmer 1.5s ease infinite;}
 @keyframes shimmer{0%,100%{opacity:0.5;}50%{opacity:1;}}
 .empty-section{text-align:center;padding:60px 24px;border:1px dashed var(–border);color:var(–text3);font-family:‘DM Mono’,monospace;font-size:12px;letter-spacing:0.1em;}
@@ -618,7 +632,74 @@ footer{padding:24px 20px;}
   </div>
 </div>
 
+<!-- ── LIGHTBOX ──────────────────────────────── -->
+
+<div class="lightbox" id="lightbox">
+  <div class="lb-close" id="lbClose">✕</div>
+  <div class="lb-counter" id="lbCounter"></div>
+  <div class="lb-prev" id="lbPrev">‹</div>
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <div class="lb-next" id="lbNext">›</div>
+  <div class="lb-dots" id="lbDots"></div>
+</div>
+
 <script>
+// ── LIGHTBOX ──────────────────────────────────
+let lbImgs = [], lbIdx = 0;
+
+function openLightbox(imgs, startIdx) {
+  lbImgs = imgs;
+  lbIdx = startIdx;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function updateLightbox() {
+  const img = document.getElementById('lbImg');
+  const counter = document.getElementById('lbCounter');
+  const dots = document.getElementById('lbDots');
+  img.style.opacity = '0';
+  setTimeout(() => { img.src = lbImgs[lbIdx]; img.style.opacity = '1'; }, 150);
+  counter.textContent = (lbIdx + 1) + ' / ' + lbImgs.length;
+  dots.innerHTML = lbImgs.map((_, i) =>
+    `<div class="lb-dot ${i === lbIdx ? 'active' : ''}" onclick="lbGoTo(${i})"></div>`
+  ).join('');
+  document.getElementById('lbPrev').style.display = lbImgs.length > 1 ? 'flex' : 'none';
+  document.getElementById('lbNext').style.display = lbImgs.length > 1 ? 'flex' : 'none';
+}
+
+function lbGoTo(idx) { lbIdx = idx; updateLightbox(); }
+
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e => { if (e.target === document.getElementById('lightbox') || e.target === document.getElementById('lbImg')) closeLightbox(); });
+document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); lbIdx = (lbIdx - 1 + lbImgs.length) % lbImgs.length; updateLightbox(); });
+document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); lbIdx = (lbIdx + 1) % lbImgs.length; updateLightbox(); });
+
+// Touch swipe support
+let lbTouchX = 0;
+document.getElementById('lightbox').addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; });
+document.getElementById('lightbox').addEventListener('touchend', e => {
+  const diff = lbTouchX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) {
+    lbIdx = diff > 0 ? (lbIdx + 1) % lbImgs.length : (lbIdx - 1 + lbImgs.length) % lbImgs.length;
+    updateLightbox();
+  }
+});
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowRight') { lbIdx = (lbIdx+1) % lbImgs.length; updateLightbox(); }
+  if (e.key === 'ArrowLeft') { lbIdx = (lbIdx-1+lbImgs.length) % lbImgs.length; updateLightbox(); }
+  if (e.key === 'Escape') closeLightbox();
+});
+
 // ── CONFIG ────────────────────────────────────
 const SUPABASE_URL = 'https://ubeuhfblaogcodcxtwiw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZXVoZmJsYW9nY29kY3h0d2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyODU1NTMsImV4cCI6MjA5MDg2MTU1M30.IVPXzDC7ncvY7yeexVBw2cR0g3IusCewQ1R8J4vxKs0';
@@ -721,11 +802,11 @@ function renderWatchCard(w) {
   if (imgs.length === 0) {
     imgHtml = `<div class="watch-placeholder-icon">⌚</div>`;
   } else if (imgs.length === 1) {
-    imgHtml = `<img src="${imgs[0]}" alt="${w.name}" loading="lazy">`;
+    imgHtml = `<img src="${imgs[0]}" alt="${w.name}" loading="lazy" style="cursor:zoom-in;" onclick="openLightbox(['${imgs[0]}'],0)">`;
   } else {
     imgHtml = `
       <div class="mini-gallery" id="gal-${w.id}" data-imgs="${imgs.join('|')}" data-idx="0">
-        <img src="${imgs[0]}" alt="${w.name}" loading="lazy" class="gal-main" id="gal-img-${w.id}">
+        <img src="${imgs[0]}" alt="${w.name}" loading="lazy" class="gal-main" id="gal-img-${w.id}" style="cursor:zoom-in;" onclick="openLightbox('${imgs.join('|')}'.split('|'), parseInt(document.getElementById('gal-${w.id}').dataset.idx))">
         <div class="gal-prev" onclick="galNav('${w.id}',-1)"></div>
         <div class="gal-next" onclick="galNav('${w.id}',1)"></div>
         <div class="gal-counter" id="gal-count-${w.id}">1 / ${imgs.length}</div>
