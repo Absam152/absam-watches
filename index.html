@@ -614,7 +614,9 @@ footer{padding:24px 20px;}
         <span class="toggle-label">Available for purchase</span>
         <div class="toggle on" id="availToggle"></div>
       </div>
+      <input type="hidden" id="editWatchId" value="">
       <button class="submit-btn" id="addWatchBtn">Add Watch to Store</button>
+      <button class="submit-btn" id="cancelEditBtn" style="display:none;background:var(--bg3);color:var(--text2);margin-top:8px;">Cancel Edit</button>
       <div class="msg" id="addMsg"></div>
     </div>
 
@@ -958,36 +960,33 @@ document.getElementById('addWatchBtn').addEventListener('click', async () => {
   if (!name || !price) { showMsg('addMsg', 'Please fill in name and price.', 'error'); return; }
 
   btn.disabled = true;
-  btn.textContent = 'Adding...';
+  const editId = document.getElementById('editWatchId').value;
+  btn.textContent = editId ? 'Saving...' : 'Adding...';
 
-  const { error } = await sb.from('watches').insert([{
+  const watchData = {
     name, brand, price,
     description: desc,
     image_url: uploadedImages.filter(Boolean).join(','),
     available: isAvailable,
     badge: badge || null,
     tags: tags || ''
-  }]);
+  };
+
+  let error;
+  if (editId) {
+    ({ error } = await sb.from('watches').update(watchData).eq('id', editId));
+  } else {
+    ({ error } = await sb.from('watches').insert([watchData]));
+  }
 
   btn.disabled = false;
-  btn.textContent = 'Add Watch to Store';
 
   if (error) {
     showMsg('addMsg', 'Error: ' + error.message, 'error');
+    btn.textContent = editId ? 'Save Changes' : 'Add Watch to Store';
   } else {
-    showMsg('addMsg', `✓ "${name}" added successfully!`, 'success');
-    document.getElementById('watchName').value = '';
-    document.getElementById('watchPrice').value = '';
-    document.getElementById('watchDesc').value = '';
-    document.getElementById('watchTags').value = '';
-    document.getElementById('watchBadge').value = '';
-    [0,1,2,3].forEach(i => {
-      const p = document.getElementById('imgPreview'+i);
-      if (p) { p.style.display='none'; p.src=''; }
-    });
-    uploadedImages = ['','','',''];
-    isAvailable = true;
-    availToggle.classList.add('on');
+    showMsg('addMsg', editId ? `✓ "${name}" updated!` : `✓ "${name}" added!`, 'success');
+    resetAddForm();
     await loadWatches();
   }
 });
@@ -1011,10 +1010,70 @@ async function renderAdminList() {
         <div class="admin-watch-meta">${w.brand} · ₦${Number(w.price).toLocaleString()} · ${w.available ? '✓ Available' : '✗ Sold Out'}</div>
       </div>
       <div class="admin-watch-actions">
-        <button class="admin-btn" onclick="toggleAvail('${w.id}', ${w.available})">${w.available ? 'Mark Sold' : 'Mark Available'}</button>
+        <button class="admin-btn" onclick="editWatch(${JSON.stringify(w)})">Edit</button>
+        <button class="admin-btn" onclick="toggleAvail('${w.id}', ${w.available})">${w.available ? 'Mark Sold' : 'Mark Avail'}</button>
         <button class="admin-btn del" onclick="deleteWatch('${w.id}', '${w.name}')">Delete</button>
       </div>
     </div>`).join('');
+}
+
+function editWatch(w) {
+  // Switch to Add tab
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-tab="add"]').classList.add('active');
+  document.getElementById('tab-add').style.display = '';
+  document.getElementById('tab-manage').style.display = 'none';
+
+  // Pre-fill form
+  document.getElementById('editWatchId').value = w.id;
+  document.getElementById('watchName').value = w.name || '';
+  document.getElementById('watchBrand').value = w.brand || 'casio';
+  document.getElementById('watchPrice').value = w.price || '';
+  document.getElementById('watchDesc').value = w.description || '';
+  document.getElementById('watchTags').value = w.tags || '';
+  document.getElementById('watchBadge').value = w.badge || '';
+  isAvailable = w.available;
+  availToggle.classList.toggle('on', isAvailable);
+
+  // Show existing images
+  const imgs = (w.image_url || '').split(',').filter(Boolean);
+  uploadedImages = ['','','',''];
+  imgs.forEach((url, i) => {
+    if (i < 4) {
+      uploadedImages[i] = url;
+      const p = document.getElementById('imgPreview'+i);
+      if (p) { p.src = url; p.style.display = 'block'; }
+    }
+  });
+
+  // Update button
+  document.getElementById('addWatchBtn').textContent = 'Save Changes';
+  document.getElementById('cancelEditBtn').style.display = 'block';
+
+  // Scroll to top of modal
+  document.querySelector('.modal').scrollTop = 0;
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+  resetAddForm();
+});
+
+function resetAddForm() {
+  document.getElementById('editWatchId').value = '';
+  document.getElementById('watchName').value = '';
+  document.getElementById('watchPrice').value = '';
+  document.getElementById('watchDesc').value = '';
+  document.getElementById('watchTags').value = '';
+  document.getElementById('watchBadge').value = '';
+  [0,1,2,3].forEach(i => {
+    const p = document.getElementById('imgPreview'+i);
+    if (p) { p.style.display='none'; p.src=''; }
+  });
+  uploadedImages = ['','','',''];
+  isAvailable = true;
+  availToggle.classList.add('on');
+  document.getElementById('addWatchBtn').textContent = 'Add Watch to Store';
+  document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
 async function toggleAvail(id, current) {
