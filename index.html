@@ -1003,21 +1003,25 @@ async function renderAdminList() {
   list.innerHTML = data.map(w => `
     <div class="admin-watch-item" id="admin-item-${w.id}">
       <div class="admin-watch-img">
-        ${w.image_url ? `<img src="${w.image_url}" alt="${w.name}">` : '⌚'}
+        ${w.image_url ? `<img src="${w.image_url.split(',')[0]}" alt="${w.name}">` : '⌚'}
       </div>
       <div class="admin-watch-info">
         <div class="admin-watch-name">${w.name}</div>
         <div class="admin-watch-meta">${w.brand} · ₦${Number(w.price).toLocaleString()} · ${w.available ? '✓ Available' : '✗ Sold Out'}</div>
       </div>
       <div class="admin-watch-actions">
-        <button class="admin-btn" onclick="editWatch(${JSON.stringify(w)})">Edit</button>
+        <button class="admin-btn" onclick="editWatch('${w.id}')">Edit</button>
         <button class="admin-btn" onclick="toggleAvail('${w.id}', ${w.available})">${w.available ? 'Mark Sold' : 'Mark Avail'}</button>
-        <button class="admin-btn del" onclick="deleteWatch('${w.id}', '${w.name}')">Delete</button>
+        <button class="admin-btn del" onclick="deleteWatch('${w.id}', '${w.name.replace(/'/g,"\\'")}')">Delete</button>
       </div>
     </div>`).join('');
 }
 
-function editWatch(w) {
+async function editWatch(id) {
+  const { data, error } = await sb.from('watches').select('*').eq('id', id).single();
+  if (error || !data) { alert('Could not load watch details.'); return; }
+  const w = data;
+
   // Switch to Add tab
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('[data-tab="add"]').classList.add('active');
